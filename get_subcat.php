@@ -1,11 +1,13 @@
+`<?php
+	$db = mysqli_connect("localhost","root","","db_evplug");
+	$brandId=$_POST["brandId"];
+	$result = mysqli_query($db,"SELECT * FROM tbl_vehiclemodel where brandId=$brandId");
+?>
+<option value="">Select Model</option>
 <?php
-    $db = mysqli_connect("localhost","root","","db_evplug");
-    $vehicletype =$_POST['vehicletype'];
-    // echo"<script>alert('$vehicletype')</script>";
-    $getvehiclebrandquery = mysqli_query($db,"SELECT * from tbl_vehiclebrand where type='$vehicletype' and status=0");
-    while($row=mysqli_fetch_array($getvehiclebrandquery)){
-?> 
-    <option value="<?php echo $row["brandId"];?>"><?php echo $row["brandName"];?></option>
+while($row = mysqli_fetch_array($result)) {
+?>
+	<option value="<?php echo $row["modelId"];?>"><?php echo $row["modelName"];?></option>
 <?php
-    }
+}
 ?>

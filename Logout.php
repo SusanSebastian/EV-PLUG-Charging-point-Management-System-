@@ -18,6 +18,6 @@
 
   // Redirect to the home page
  // $home_url = 'http://' . $_SERVER['HTTP_HOST'] . dirname($_SERVER['PHP_SELF']) . '/index.php';
-  header("location: ../../home.html");
+  header("location: ../home.html");
   // echo"<script>window.location.href='http://localhost/NEW EVPLUG/home.html';</script>";
 ?>
