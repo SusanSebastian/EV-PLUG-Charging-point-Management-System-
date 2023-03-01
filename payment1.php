@@ -266,19 +266,19 @@ span.price {
         </div>
         <!-- Nav Bar End -->
 
-
-<div class="row" style="margin-left:100px; margin-right:100px">
+<form method="POST">
+<!-- <div class="row" style="margin-left:100px; margin-right:100px">
   <div class="col-25">
-    <div class="container1">
-        <div class="row">
-          <div class="col-75">
+    <div class="container1"> -->
+        <!-- <div class="row"> -->
+          <!-- <div class="col-75">
             <label for="cname">Name on Card</label>
             <input type="text" id="cname" name="cardname" placeholder="Enter your name">
             <label for="ccnum">Debit/Credit card number</label>
-            <input type="text" id="ccnum" name="cardnumber" placeholder="Enter your Card Number">
+            <input type="text" id="ccnum" name="cardnumber" placeholder="Enter your Card Number"> -->
             <!-- label for="expmonth">Exp Month</label>
             <input type="text" id="expmonth" name="expmonth" placeholder="expiry month"> -->
-            <div class="row">
+            <!-- <div class="row">
               <div class="col-50">
                 <label for="expyear">Expiry Date</label>
                 <input type="text" id="expdate" name="expdate" placeholder="expiry year">
@@ -288,15 +288,18 @@ span.price {
                 <input type="password" id="cvv" name="cvv" style="margin-top:40px;">
               </div>
             </div>
-          </div>
-        </div>
-        <div id="paypal-payment-button">
+          </div> -->
+        <!-- </div> -->
+        <!-- <div id="paypal-payment-button">
             <script src="https://www.paypal.com/sdk/js?client-id=AUgXdsRwh4dpvxqgr7L8vbOWHm94Enl4EqHo5JgKTGeFTc3g25anwW5zbtevhn1UtppJodRubMiLltbn"></script>
             <script>paypal.Buttons().render('paypal-payment-button');</script>
             <script src="payindex.js"></script>
-        </div>
+        </div> -->
     </div>
-    <input type="submit" value="Confirm Payment" name="confirm" class="btn1" style="width:50%;margin-left: 30%;">
+    <!-- <input type="submit" value="Confirm Payment" name="confirm" class="btn1" style="width:50%;margin-left: 30%;"> -->
+    <script src="https://code.jquery.com/jquery-3.6.1.js"></script>
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+    <input type="button" name="pay" id ="rzp-button1" value="pay now" onclick="pay_now()">
   </div>
   <div class="col-25">
     <div class="container1">
@@ -307,8 +310,7 @@ span.price {
       <p><a href="#">Product 4</a> <span class="price">$2</span></p>
       <hr>
       <p>Total <span class="price" style="color:black"><b>$30</b></span></p> -->
-      <form method="POST">
-              <div class="card-4" style="width:100%">
+              <div class="card-4" style="width:50%">
                 <div class="w3-container w3-center">
                   <table style="align-content: center;">
                         <tr>
@@ -357,7 +359,7 @@ span.price {
                     </table>
                 </div>
               </div>
-              </form>
+        </form>
     </div>
   </div>
 </div>
@@ -447,6 +449,51 @@ span.price {
         <script src="js/main.js"></script>
         <script>
 </script>
+<script>
+
+// var val= document.getElementById("totamt").value=total;
+    function pay_now(){
+
+   //  var name=jQuery('#name').val();
+   // var name= "binu"
+    var lid = <?php $i = $_SESSION['id']; echo "$i";?>;
+    var amt= <?php $p=$_SESSION['price']; echo "$p";?>;
+    var options = {
+    "key": "rzp_test_UEVFOjX266Yegk",
+    "amount": amt*100, 
+    "currency": "INR",
+    "name": "EV PLUG",
+    "description": "Test Transaction",
+    "image": "https://drive.google.com/file/d/1FJCNPPMhML96z3s4IrR8-yGU4A6HLm2X/view?usp=share_link",
+    "handler":function(response){
+        console.log(response);
+        jQuery.ajax({
+            type:'POST',
+            url:'payment_process.php',
+            data:"paymentid="+response.razorpay_payment_id+"&amount="+amt+"&id="+lid,
+            success:function(result){
+                window.location.href="thankyou.php?payment_id="+response.razorpay_payment_id;
+            }
+
+        })
+        // if(response){
+        //     window.location.href="/adsol/index.php";
+        // }
+       
+
+    }
+};
+
+var rzp1 = new Razorpay(options);
+document.getElementById('rzp-button1').onclick = function(e){
+    rzp1.open();
+    e.preventDefault();
+}
+
+}
+
+</script>
+
     </body>
 </html>
 
@@ -473,22 +520,33 @@ if(isset($_POST['confirm'])){
     $cardno = $_POST['cardnumber'];
     $expdate = $_POST['expdate'];
     $cvv = $_POST['cvv'];
+    $vehicleRegNo = $_SESSION['vehicleno'];
+    $date = $_SESSION['date'];
+    $price = $_SESSION['price'];
+    $time = $_SESSION['time'];
+    $sid = $_SESSION['sid'];
     $pay_select = "SELECT * FROM tbl_card where loginId='$customerId'";
     $pay_selectresult = mysqli_query($db,$pay_select);
-    $row = mysqli_fetch_array($pay_selectresult);
+    $row = mysqli_fetch_assoc($pay_selectresult);
     $loginId = $row['loginId'];
     $number = $row['cardNo'];
     $expiry = $row['expiry'];
     $cvv1 = $row['CVV'];
+    $balance = $row['balance'];
     if($customerId==$loginId && $expdate==$expiry && $cvv==$cvv1){
-    $pay_query = "INSERT INTO tbl_card(loginId,cardNo,expiry,CVV)VALUES('$customerId','$cardno','$expdate','$cvv')";
-    $pay_queryresult = mysqli_query($db,$pay_query);
-        if($pay_queryresult){
+        $bookingQuery = mysqli_query($db,"INSERT INTO tbl_booking(customer_id,vehicle_no,station_id,booking_date,booking_time,type,price,status)values('$customerId','$vehicleRegNo','$sid','$date','$time','$chargeType','$price',1)");
+        if($bookingQuery){
+            $newBalance = $balance - $price;
+            $updateBalance = mysqli_query($db, "UPDATE tbl_card SET balance = '$newBalance'");
+            echo"<script Type='text/javascript'>alert('Booking Success')</script>";
             echo"<script>window.location.href='http://localhost/NEW EVPLUG/Customer/my_bookings.php'</script>";
+        }
+        else{
+            echo"<script Type='text/javascript'>alert('Booking Failed')</script>";
         }
     }
     else{
-            echo"<script>alert('Payment Failed')</script>";
+         echo"<script>alert('Incorrect card Details')</script>";
 
     }
 }
